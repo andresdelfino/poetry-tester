@@ -11,6 +11,7 @@ import uuid
 
 COMMON_FLAGS = [
     '-vvv',
+    '--no-cache',
     '--no-ansi',
 ]
 
@@ -48,8 +49,13 @@ def _setup_logger() -> None:
     )
 
 
-def add_dependency(project_path: str, dependency: str, source_name: str) -> None:
-    _run(project_path, ['poetry', 'add', *COMMON_FLAGS, '--lock', '--source', source_name, dependency])
+def add_dependency(project_path: str, dependency: str, source_name: str | None = None) -> None:
+    if source_name:
+        source_args = ['--source', source_name]
+    else:
+        source_args = []
+
+    _run(project_path, ['poetry', 'add', *COMMON_FLAGS, '--lock', *source_args, dependency])
 
 
 def add_source(project_path: str, source_name: str, source_url: str) -> None:
@@ -124,6 +130,7 @@ def main() -> None:
         new(project_path)
         add_source(project_path, SOURCE_NAME, SOURCE_URL)
 
+    add_dependency(LORITO_PATH, 'requests')
     build(LORITO_PATH)
     publish(LORITO_PATH, SOURCE_NAME)
 
