@@ -9,9 +9,6 @@ import tempfile
 import uuid
 
 
-# docker run -p 80:8080 pypiserver/pypiserver:latest run -P . -a . --hash-algo sha256
-
-
 SOURCE_NAME = 'localhost'
 SOURCE_URL = 'http://localhost/'
 
