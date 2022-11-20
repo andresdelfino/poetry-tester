@@ -30,7 +30,8 @@ def _run(project_path: str, command: list[str]) -> None:
     subprocess.run(command, cwd=project_path, check=True)
 
     if subprocess.run(['git', 'diff', '--quiet'], cwd=project_path).returncode != 0:
-        subprocess.run(['git', 'commit', '--all', '--message', ' '.join(command)], cwd=project_path, check=True)
+        subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
+        subprocess.run(['git', 'commit', '--message', ' '.join(command)], cwd=project_path, check=True)
 
         commit_id = _get_commit_id(project_path)
     else:
