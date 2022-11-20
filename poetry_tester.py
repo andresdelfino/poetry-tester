@@ -89,6 +89,8 @@ def new(project_path: str) -> None:
             logger.info('%s, %s, %s:\n%s', project_path, ' '.join(command), stream, stream_content.decode().rstrip())
 
     subprocess.run(['git', 'init', '--quiet', '--initial-branch', 'main'], cwd=project_path, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'you@example.com'], cwd=project_path, check=True)
+    subprocess.run(['git', 'config', 'user.name', 'Your Name'], cwd=project_path, check=True)
 
     with open(f'{project_path}/.gitignore', 'w') as f:
         f.write('dist')
