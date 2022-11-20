@@ -22,23 +22,31 @@ def _get_commit_id(project_path: str) -> str:
     return commit_id
 
 
-def _run(project_path: str, command: list[str]) -> None:
-    completed_process = subprocess.run(command, cwd=project_path, capture_output=True, check=True)
+def _log_streams(project_path: str, completed_process: subprocess.CompletedProcess) -> None:
+    joined_command = ' '.join(completed_process.args)
 
     for stream in 'stdout', 'stderr':
         stream_content = getattr(completed_process, stream)
         if stream_content:
-            logger.info('%s, %s, %s:\n%s', project_path, ' '.join(command), stream, stream_content.decode().rstrip())
+            decoded_stream_content = stream_content.decode().rstrip()
+            logger.info('%s, %s, %s:\n%s', project_path, joined_command, stream, decoded_stream_content)
+
+
+def _run(project_path: str, command: list[str]) -> None:
+    completed_process = subprocess.run(command, cwd=project_path, capture_output=True, check=True)
+    _log_streams(project_path, completed_process)
+
+    joined_command = ' '.join(command)
 
     if subprocess.run(['git', 'diff', '--quiet'], cwd=project_path).returncode != 0:
         subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-        subprocess.run(['git', 'commit', '--quiet', '--message', ' '.join(command)], cwd=project_path, check=True)
+        subprocess.run(['git', 'commit', '--quiet', '--message', joined_command], cwd=project_path, check=True)
 
         commit_id = _get_commit_id(project_path)
     else:
         commit_id = 'N/A'
 
-    logger.info('%s, %s, %s', project_path, ' '.join(command), commit_id)
+    logger.info('%s, %s, %s', project_path, joined_command, commit_id)
 
 
 def _setup_logger(filename: str) -> None:
@@ -80,11 +88,9 @@ def new(project_path: str) -> None:
     command = ['poetry', 'new', *COMMON_FLAGS, project_path]
 
     completed_process = subprocess.run(command, capture_output=True, check=True)
+    _log_streams(project_path, completed_process)
 
-    for stream in 'stdout', 'stderr':
-        stream_content = getattr(completed_process, stream)
-        if stream_content:
-            logger.info('%s, %s, %s:\n%s', project_path, ' '.join(command), stream, stream_content.decode().rstrip())
+    joined_command = ' '.join(command)
 
     subprocess.run(['git', 'init', '--quiet', '--initial-branch', 'main'], cwd=project_path, check=True)
     subprocess.run(['git', 'config', 'user.email', 'you@example.com'], cwd=project_path, check=True)
@@ -94,10 +100,10 @@ def new(project_path: str) -> None:
         f.write('dist')
 
     subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-    subprocess.run(['git', 'commit', '--quiet', '--message', ' '.join(command)], cwd=project_path, check=True)
+    subprocess.run(['git', 'commit', '--quiet', '--message', joined_command], cwd=project_path, check=True)
 
     commit_id = _get_commit_id(project_path)
-    logger.info('%s, %s, %s', project_path, ' '.join(command), commit_id)
+    logger.info('%s, %s, %s', project_path, joined_command, commit_id)
 
 
 def publish(project_path: str, repository_name: str) -> None:
@@ -122,7 +128,8 @@ def update_dependency(project_path: str, dependency: str) -> None:
 
 
 def main() -> None:
-    log_filename = f'{datetime.datetime.now():%Y%m%d%H%M%S}.log'
+    now = datetime.datetime.now()
+    log_filename = f'{now:%Y%m%d%H%M%S}.log'
 
     _setup_logger(log_filename)
     print(log_filename)
