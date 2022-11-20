@@ -15,9 +15,6 @@ COMMON_FLAGS = [
     '--no-ansi',
 ]
 
-SOURCE_NAME = 'localhost'
-SOURCE_URL = 'http://localhost/'
-
 logger = logging.getLogger(__name__)
 
 
@@ -125,32 +122,35 @@ def main() -> None:
     GATITO_PATH = f'{temp_root}/gatito'
     PERRITO_PATH = f'{temp_root}/perrito'
 
+    LOCAL_SOURCE_NAME = 'local'
+    LOCAL_SOURCE_URL = 'http://localhost/'
+
     # ------------------------------------------------------------------
 
     for project_path in LORITO_PATH, GATITO_PATH, PERRITO_PATH:
         new(project_path)
-        add_source(project_path, SOURCE_NAME, SOURCE_URL)
+        add_source(project_path, LOCAL_SOURCE_NAME, LOCAL_SOURCE_URL)
 
     add_dependency(LORITO_PATH, 'requests')
     build(LORITO_PATH)
-    publish(LORITO_PATH, SOURCE_NAME)
+    publish(LORITO_PATH, LOCAL_SOURCE_NAME)
 
-    add_dependency(GATITO_PATH, 'lorito', SOURCE_NAME)
+    add_dependency(GATITO_PATH, 'lorito', LOCAL_SOURCE_NAME)
     build(GATITO_PATH)
-    publish(GATITO_PATH, SOURCE_NAME)
+    publish(GATITO_PATH, LOCAL_SOURCE_NAME)
 
-    add_dependency(PERRITO_PATH, 'gatito', SOURCE_NAME)
+    add_dependency(PERRITO_PATH, 'gatito', LOCAL_SOURCE_NAME)
 
     # ------------------------------------------------------------------
 
     bump_version(LORITO_PATH, 'patch')
     build(LORITO_PATH)
-    publish(LORITO_PATH, SOURCE_NAME)
+    publish(LORITO_PATH, LOCAL_SOURCE_NAME)
 
     bump_version(GATITO_PATH, 'patch')
     update_dependency(GATITO_PATH, 'lorito')
     build(GATITO_PATH)
-    publish(GATITO_PATH, SOURCE_NAME)
+    publish(GATITO_PATH, LOCAL_SOURCE_NAME)
 
     update_dependency(PERRITO_PATH, 'gatito')
     #update_all_dependencies(PERRITO_PATH)
