@@ -53,9 +53,7 @@ def add_source(project_path: str, source_name: str, source_url: str) -> None:
 
 
 def build(project_path: str) -> None:
-    command = ['poetry', 'build', '--format', 'wheel']
-
-    _run(project_path, command)
+    _run(project_path, ['poetry', 'build', '--format', 'wheel'])
 
 
 def bump_version(project_path: str, version: str) -> None:
@@ -84,20 +82,15 @@ def new(project_path: str) -> None:
 
 
 def publish(project_path: str, repository_name: str) -> None:
-    command = ['poetry', 'publish', '--repository', repository_name]
-
-    _run(project_path, command)
+    _run(project_path, ['poetry', 'publish', '--repository', repository_name])
 
 
 def remove_environment(project_path: str) -> None:
-    command = ['poetry', 'env', 'remove', '--all']
-
-    _run(project_path, command)
+    _run(project_path, ['poetry', 'env', 'remove', '--all'])
 
 
 def remove_lock(project_path: str) -> None:
     logger.info('%s, removing poetry.lock', project_path)
-
     os.remove(f'{project_path}/poetry.lock')
 
 
