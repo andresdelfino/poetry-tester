@@ -34,7 +34,7 @@ def _run(project_path: str, command: list[str]) -> None:
 
     if subprocess.run(['git', 'diff', '--quiet'], cwd=project_path).returncode != 0:
         subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-        subprocess.run(['git', 'commit', '--message', ' '.join(command)], cwd=project_path, check=True)
+        subprocess.run(['git', 'commit', '--quiet', '--message', ' '.join(command)], cwd=project_path, check=True)
 
         commit_id = _get_commit_id(project_path)
     else:
@@ -43,11 +43,11 @@ def _run(project_path: str, command: list[str]) -> None:
     logger.info('%s, %s, %s', project_path, ' '.join(command), commit_id)
 
 
-def _setup_logger() -> None:
+def _setup_logger(filename: str) -> None:
     logging.basicConfig(
         datefmt='%Y-%m-%d %H:%M:%S',
         filemode='w',
-        filename=f'{datetime.datetime.now():%Y%m%d%H%M%S}.log',
+        filename=filename,
         format='%(name)s:%(levelname)s:%(asctime)s:%(message)s',
         level='INFO',
     )
@@ -81,15 +81,20 @@ def lock(project_path: str) -> None:
 def new(project_path: str) -> None:
     command = ['poetry', 'new', *COMMON_FLAGS, project_path]
 
-    subprocess.run(command, check=True)
+    completed_process = subprocess.run(command, capture_output=True, check=True)
 
-    subprocess.run(['git', 'init', '--initial-branch', 'main'], cwd=project_path, check=True)
+    for stream in 'stdout', 'stderr':
+        stream_content = getattr(completed_process, stream)
+        if stream_content:
+            logger.info('%s, %s, %s:\n%s', project_path, ' '.join(command), stream, stream_content.decode().rstrip())
+
+    subprocess.run(['git', 'init', '--quiet', '--initial-branch', 'main'], cwd=project_path, check=True)
 
     with open(f'{project_path}/.gitignore', 'w') as f:
         f.write('dist')
 
     subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-    subprocess.run(['git', 'commit', '--message', ' '.join(command)], cwd=project_path, check=True)
+    subprocess.run(['git', 'commit', '--quiet', '--message', ' '.join(command)], cwd=project_path, check=True)
 
     commit_id = _get_commit_id(project_path)
     logger.info('%s, %s, %s', project_path, ' '.join(command), commit_id)
@@ -117,9 +122,13 @@ def update_dependency(project_path: str, dependency: str) -> None:
 
 
 def main() -> None:
-    _setup_logger()
+    log_filename = f'{datetime.datetime.now():%Y%m%d%H%M%S}.log'
+
+    _setup_logger(log_filename)
+    print(log_filename)
 
     temp_root = tempfile.mkdtemp()
+    print(temp_root)
 
     # lorito is a direct dependency of gatito
     # gatito is a direct dependency of perrito
@@ -160,10 +169,6 @@ def main() -> None:
 
     update_dependency(PERRITO_PATH, 'gatito')
     #update_all_dependencies(PERRITO_PATH)
-
-    # ------------------------------------------------------------------
-
-    print(temp_root)
 
 
 if __name__ == '__main__':
