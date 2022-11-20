@@ -19,12 +19,18 @@ logger = logging.getLogger(__name__)
 
 
 def _get_commit_id(project_path: str) -> str:
-    commit_id = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=project_path, capture_output=True, check=True).stdout.decode().rstrip()
+    completed_process = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=project_path, capture_output=True, check=True)
+    commit_id = completed_process.stdout.decode().rstrip()
     return commit_id
 
 
 def _run(project_path: str, command: list[str]) -> None:
-    subprocess.run(command, cwd=project_path, check=True)
+    completed_process = subprocess.run(command, cwd=project_path, capture_output=True, check=True)
+
+    for stream in 'stdout', 'stderr':
+        stream_content = getattr(completed_process, stream)
+        if stream_content:
+            logger.info('%s, %s, %s:\n%s', project_path, ' '.join(command), stream, stream_content.decode().rstrip())
 
     if subprocess.run(['git', 'diff', '--quiet'], cwd=project_path).returncode != 0:
         subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
