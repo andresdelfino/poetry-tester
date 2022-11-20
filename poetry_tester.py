@@ -9,6 +9,11 @@ import tempfile
 import uuid
 
 
+COMMON_FLAGS = [
+    '-vvv',
+    '--no-ansi',
+]
+
 SOURCE_NAME = 'localhost'
 SOURCE_URL = 'http://localhost/'
 
@@ -24,8 +29,7 @@ def _run(project_path: str, command: list[str]) -> None:
     subprocess.run(command, cwd=project_path, check=True)
 
     if subprocess.run(['git', 'diff', '--quiet'], cwd=project_path).returncode != 0:
-        subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-        subprocess.run(['git', 'commit', '-m', ' '.join(command)], cwd=project_path, check=True)
+        subprocess.run(['git', 'commit', '--all', '--message', ' '.join(command)], cwd=project_path, check=True)
 
         commit_id = _get_commit_id(project_path)
     else:
@@ -45,48 +49,48 @@ def _setup_logger() -> None:
 
 
 def add_dependency(project_path: str, dependency: str, source_name: str) -> None:
-    _run(project_path, ['poetry', 'add', '--lock', '--source', source_name, dependency])
+    _run(project_path, ['poetry', 'add', *COMMON_FLAGS, '--lock', '--source', source_name, dependency])
 
 
 def add_source(project_path: str, source_name: str, source_url: str) -> None:
-    _run(project_path, ['poetry', 'source', 'add', source_name, source_url])
+    _run(project_path, ['poetry', 'source', 'add', *COMMON_FLAGS, source_name, source_url])
 
 
 def build(project_path: str) -> None:
-    _run(project_path, ['poetry', 'build', '--format', 'wheel'])
+    _run(project_path, ['poetry', 'build', *COMMON_FLAGS, '--format', 'wheel'])
 
 
 def bump_version(project_path: str, version: str) -> None:
-    _run(project_path, ['poetry', 'version', version])
+    _run(project_path, ['poetry', 'version', *COMMON_FLAGS, version])
 
 
 def lock(project_path: str) -> None:
-    _run(project_path, ['poetry', 'lock'])
+    _run(project_path, ['poetry', 'lock', *COMMON_FLAGS])
 
 
 def new(project_path: str) -> None:
-    command = ['poetry', 'new', project_path]
+    command = ['poetry', 'new', *COMMON_FLAGS, project_path]
 
     subprocess.run(command, check=True)
 
-    subprocess.run(['git', 'init', '-b', 'main'], cwd=project_path, check=True)
+    subprocess.run(['git', 'init', '--initial-branch', 'main'], cwd=project_path, check=True)
 
     with open(f'{project_path}/.gitignore', 'w') as f:
         f.write('dist')
 
     subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
-    subprocess.run(['git', 'commit', '-m', ' '.join(command)], cwd=project_path, check=True)
+    subprocess.run(['git', 'commit', '--message', ' '.join(command)], cwd=project_path, check=True)
 
     commit_id = _get_commit_id(project_path)
     logger.info('%s, %s, %s', project_path, ' '.join(command), commit_id)
 
 
 def publish(project_path: str, repository_name: str) -> None:
-    _run(project_path, ['poetry', 'publish', '--repository', repository_name])
+    _run(project_path, ['poetry', 'publish', *COMMON_FLAGS, '--repository', repository_name])
 
 
 def remove_environment(project_path: str) -> None:
-    _run(project_path, ['poetry', 'env', 'remove', '--all'])
+    _run(project_path, ['poetry', 'env', 'remove', *COMMON_FLAGS, '--all'])
 
 
 def remove_lock(project_path: str) -> None:
@@ -95,11 +99,11 @@ def remove_lock(project_path: str) -> None:
 
 
 def update_all_dependencies(project_path: str) -> None:
-    _run(project_path, ['poetry', 'update', '--lock'])
+    _run(project_path, ['poetry', 'update', *COMMON_FLAGS, '--lock'])
 
 
 def update_dependency(project_path: str, dependency: str) -> None:
-    _run(project_path, ['poetry', 'update', '--lock', dependency])
+    _run(project_path, ['poetry', 'update', *COMMON_FLAGS, '--lock', dependency])
 
 
 def main() -> None:
