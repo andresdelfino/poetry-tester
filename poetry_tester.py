@@ -70,7 +70,7 @@ def build(project_path: str) -> None:
     _run(project_path, ['poetry', 'build', *COMMON_FLAGS, '--format', 'wheel'])
 
 
-def bump_version(project_path: str, version: str) -> None:
+def bump_version(project_path: str, version: str = 'patch') -> None:
     _run(project_path, ['poetry', 'version', *COMMON_FLAGS, version])
 
 
@@ -149,11 +149,11 @@ def main() -> None:
 
     # ------------------------------------------------------------------
 
-    bump_version(LORITO_PATH, 'patch')
+    bump_version(LORITO_PATH)
     build(LORITO_PATH)
     publish(LORITO_PATH, LOCAL_SOURCE_NAME)
 
-    bump_version(GATITO_PATH, 'patch')
+    bump_version(GATITO_PATH)
     update_dependency(GATITO_PATH, 'lorito')
     build(GATITO_PATH)
     publish(GATITO_PATH, LOCAL_SOURCE_NAME)
