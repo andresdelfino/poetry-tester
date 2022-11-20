@@ -4,9 +4,7 @@ import datetime
 import logging
 import os
 import subprocess
-import sys
 import tempfile
-import uuid
 
 
 COMMON_FLAGS = [
@@ -170,7 +168,7 @@ def main() -> None:
     publish(GATITO_PATH, LOCAL_SOURCE_NAME)
 
     update_dependency(PERRITO_PATH, 'gatito')
-    #update_all_dependencies(PERRITO_PATH)
+    # update_all_dependencies(PERRITO_PATH)
 
 
 if __name__ == '__main__':
